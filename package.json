@@ -1,0 +1,14 @@
+{
+	"name": "js-post-ui",
+	"private": true,
+	"version": "0.0.0",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"devDependencies": {
+		"@originjs/vite-plugin-commonjs": "^1.0.3",
+		"vite": "^4.1.0"
+	}
+}
