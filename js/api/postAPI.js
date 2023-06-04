@@ -1,5 +1,5 @@
 import axiosClient from './axiosClient';
-const postApi = {
+export const PostApi = {
   getAll(params) {
     const url = '/posts';
     return axiosClient.get(url, { params });
@@ -36,5 +36,3 @@ const postApi = {
     return axiosClient.delete(url);
   },
 };
-
-export default postApi;
