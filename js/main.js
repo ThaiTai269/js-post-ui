@@ -1,21 +1,19 @@
-import { setupCounter } from '../counter.js'
+import axiosClient from './api/axiosClient';
+import postApi from './api/postApi';
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+async function main() {
+  try {
+    const queryParams = {
+      _page: 1,
+      _limit: 5,
+    };
 
-setupCounter(document.querySelector('#counter'))
+    // const response = await axiosClient.get('/posts');
+    const response = await postApi.getAll(queryParams);
+    console.log(response);
+  } catch (error) {
+    console.log('get all failed error: ', error);
+    // show modal, toast error
+  }
+}
+main();

@@ -1,48 +1,92 @@
-import postAPI from './api/postAPI'
+import postApi from './api/postApi';
+import { initSearch, initPagination, renderPostList, renderPagination, toast } from './utils';
+import { setTextContent } from './utils/common';
 
-function createPostElement(post) {
-	if (!post) return
-	try {
-		// find and clone template
-		const postTemplate = document.getElementById('postTemplate')
-		if (!postTemplate) return
-		const liElement = postTemplate.content.firstElementChild.cloneNode(true)
-		if (!liElement) return
-		// update title, des, author, thumbnail
-		const titleElement = liElement.querySelector('[data-id="title"]')
-		if (titleElement) titleElement.textContent = post.title
-		const desElement = liElement.querySelector('[data-id="description"]')
-		if (desElement) titleElement.textContent = post.description
-		const authorElement = liElement.querySelector('[data-id="author"]')
-		if (authorElement) titleElement.textContent = post.author
-		// attach events
-		return liElement
-	} catch (error) {
-		console.log(error)
-	}
-}
-function renderPostList(postList) {
-	console.log(postList)
-	if (!Array.isArray(postList) || postList.length === 0) return
-	const ulElement = document.getElementById('postList')
-	if (!ulElement) return
-	postList.forEach((post) => {
-		const liElement = createPostElement(post)
-		ulElement.appendChild(liElement)
-	})
-	console.log(ulElement)
+async function handleFilterChange(filterName, filterValue) {
+  try {
+    // update query Params
+    const url = new URL(window.location);
+
+    // set query params for search and pagination
+    if (filterName) url.searchParams.set(filterName, filterValue);
+
+    //reset page if needed
+    if (filterName === 'title_like') url.searchParams.set('_page', 1);
+    history.pushState({}, '', url);
+
+    //fetch API
+    const { data, pagination } = await postApi.getAll(url.searchParams);
+    // re-render post list
+    renderPostList('postList', data);
+    renderPagination('pagination', pagination);
+  } catch (error) {
+    console.log('failed to fetch post list', error);
+  }
 }
 
-;(async () => {
-	try {
-		const queryParams = {
-			_page: 1,
-			_limit: 5,
-		}
-		const { data, pagination } = await postAPI.getAll(queryParams)
-		renderPostList(data)
-		console.log(data)
-	} catch (err) {
-		console.log(err)
-	}
-})()
+function registerPostDeleteEvent({ content, removeBtn }) {
+  //selector
+  const contentElement = document.querySelector(content);
+  console.log(contentElement);
+
+  const removeButton = document.querySelector(removeBtn);
+  if (!contentElement || !removeButton) return;
+
+  document.addEventListener('post-delete', (event) => {
+    try {
+      const post = event.detail;
+      const message = `Are you sure to remove post "${post.title}"?`;
+      contentElement.textContent = message;
+
+      removeButton.addEventListener('click', async () => {
+        //call API to remove the post by id
+        await postApi.remove(post.id);
+        // refetch data after remove post
+        await handleFilterChange();
+
+        toast.success('Remove post successfully');
+      });
+    } catch (error) {
+      console.log('failed to remove post', error);
+      toast.error(error.message);
+    }
+  });
+}
+
+//* Main
+(async () => {
+  try {
+    //set default pagination (_page , _limit) on url
+    const url = new URL(window.location);
+    if (!url.searchParams.get('_page')) url.searchParams.set('_page', 1);
+    if (!url.searchParams.get('_limit')) url.searchParams.set('_limit', 6);
+
+    history.pushState({}, '', url);
+    const queryParams = url.searchParams;
+
+    registerPostDeleteEvent({
+      content: "p[data-id='removePostContent']",
+      removeBtn: "button[data-id='removePostDelete']",
+    });
+
+    initPagination({
+      elementId: 'pagination',
+      defaultParams: queryParams,
+      onchange: (page) => handleFilterChange('_page', page),
+    });
+    initSearch({
+      elementId: 'search-input',
+      defaultParams: queryParams,
+      onchange: (value) => handleFilterChange('title_like', value),
+    });
+
+    //** render post list base URL params
+    // const { data, pagination } = await postApi.getAll(queryParams);
+    // renderPostList('postList', data);
+    // renderPagination('pagination', pagination);
+    handleFilterChange();
+  } catch (error) {
+    console.log('get all failed error: ', error);
+    // show modal, toast error
+  }
+})();
