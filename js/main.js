@@ -1,5 +1,5 @@
 import axiosClient from './api/axiosClient';
-import postApi from './api/postApi';
+import postApi from './api/postAPI';
 
 async function main() {
   try {

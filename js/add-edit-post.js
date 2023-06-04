@@ -1,4 +1,4 @@
-import postApi from './api/postApi';
+import postApi from './api/postAPI';
 import { initPostForm, toast } from './utils';
 
 function removeUnusedFields(formValues) {
