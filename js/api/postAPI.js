@@ -1,5 +1,5 @@
 import axiosClient from './axiosClient';
-export const PostApi = {
+export const postApi = {
   getAll(params) {
     const url = '/posts';
     return axiosClient.get(url, { params });
